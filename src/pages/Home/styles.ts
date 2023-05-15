@@ -109,11 +109,16 @@ export const StartButton = styled.button`
   border-radius: 8px;
   background: ${({ theme }) => theme["green-500"]};
   border: 0;
-  color: ${({ theme }) => theme["gray-100"]};
+  color: ${({ theme }) => theme.white};
   gap: 0.5rem;
   transition:.3s all;
 
   &:hover{
     background-color: ${({ theme }) => theme["green-700"]}
+  }
+
+  &:disabled{
+    background-color: ${({ theme }) => theme["green-700"]};
+    color: ${({ theme }) => theme["gray-100"]};
   }
 `;
