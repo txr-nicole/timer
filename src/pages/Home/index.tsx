@@ -1,4 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Play } from "phosphor-react";
+import { useForm } from "react-hook-form";
+import * as zod from "zod";
+
+import { useState } from "react";
 import {
   CountdownContainer,
   FormContainer,
@@ -9,10 +14,52 @@ import {
   TaskInput,
 } from "./styles";
 
+const newCycleFormSchema = zod.object({
+  task: zod.string().min(1, "Informe a tarefa"),
+  minutesAmount: zod.number().min(5).max(60),
+});
+
+type NewCycleFormData = zod.infer<typeof newCycleFormSchema>;
+
+interface Cycle {
+  id: string;
+  task: string;
+  minutesAmount: number;
+}
+
 export function Home() {
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [activeCyclesId, setActiveCyclesId] = useState<string | null>(null);
+
+  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormSchema),
+    defaultValues: {
+      task: "",
+      minutesAmount: 0,
+    },
+  });
+
+  function handleCreateNewCycle(data: NewCycleFormData) {
+    const id = String(new Date().getTime());
+    const newCycle: Cycle = {
+      id,
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+    };
+
+    setCycles((state) => [...state, newCycle]);
+    setActiveCyclesId(id)
+
+    reset();
+  }
+  const activeCycle = cycles.find((cycle)=> cycle.id === activeCyclesId)
+  console.log({activeCycle, cycles});
+  
+  const task = watch("task");
+
   return (
     <HomeContainer>
-      <form action="">
+      <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
         <FormContainer>
           <label htmlFor="task">Vou trabalhar em</label>
           <TaskInput
@@ -20,13 +67,13 @@ export function Home() {
             id="task"
             placeholder="Dê um nome para o seu projeto"
             list="task-suggestions"
+            {...register("task")}
           />
           <datalist id="task-suggestions">
             <option value="Projeto 1" />
             <option value="Projeto 2" />
             <option value="Projeto 3" />
             <option value="Descanso" />
-            
           </datalist>
 
           <label htmlFor="minutesAmount">durante</label>
@@ -37,6 +84,7 @@ export function Home() {
             step={5}
             min={5}
             max={60}
+            {...register("minutesAmount", { valueAsNumber: true })}
           />
 
           <span>minutos</span>
@@ -49,7 +97,7 @@ export function Home() {
           <span>0</span>
         </CountdownContainer>
 
-        <StartButton disabled type="submit">
+        <StartButton disabled={!task} type="submit">
           <Play size={24} />
           Começar
         </StartButton>
