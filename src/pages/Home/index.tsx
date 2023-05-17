@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Play } from "phosphor-react";
+import { differenceInSeconds } from "date-fns";
+import { HandPalm, Play } from "phosphor-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as zod from "zod";
-import { useEffect, useState } from "react";
-import { differenceInSeconds } from "date-fns"
 import {
   CountdownContainer,
   FormContainer,
@@ -11,6 +11,7 @@ import {
   MinutesAmountInput,
   Separator,
   StartButton,
+  StopButton,
   TaskInput,
 } from "./styles";
 
@@ -119,10 +120,17 @@ export function Home() {
           <span>{seconds[1]}</span>
         </CountdownContainer>
 
-        <StartButton disabled={!task} type="submit">
-          <Play size={24} />
-          Começar
-        </StartButton>
+        {activeCycle ? (
+          <StopButton type="button">
+            <HandPalm size={24} />
+            Interromper
+          </StopButton>
+        ) : (
+          <StartButton disabled={!task} type="submit">
+            <Play size={24} />
+            Começar
+          </StartButton>
+        )}
       </form>
     </HomeContainer>
   );
