@@ -26,7 +26,7 @@ interface Cycle {
   id: string;
   task: string;
   minutesAmount: number;
-  startDate : Date;
+  startDate: Date;
   interruptedDate?: Date;
 }
 
@@ -46,21 +46,31 @@ export function Home() {
   const activeCycle = cycles.find((cycle) => cycle.id === activeCyclesId);
 
   useEffect(() => {
-    if(activeCycle){
-      setInterval(() =>{
-          setAmountSecondsPassed(differenceInSeconds(new Date(), activeCycle.startDate));
+    let interval: number;
+
+    if (activeCycle) {
+      interval = setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate)
+        );
       }, 1000);
     }
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [activeCycle]);
 
   function handleInterruptCycle() {
-    setCycles(cycles.map(cycle => {
-      if(cycle.id === activeCyclesId){
-        return {...cycle, interruptedDate: new Date()}
-      } else{
-        return cycle;
-      }
-    }))
+    setCycles(
+      cycles.map((cycle) => {
+        if (cycle.id === activeCyclesId) {
+          return { ...cycle, interruptedDate: new Date() };
+        } else {
+          return cycle;
+        }
+      })
+    );
     setActiveCyclesId(null);
   }
 
@@ -78,7 +88,7 @@ export function Home() {
 
     reset();
   }
-  
+
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
 
@@ -88,9 +98,17 @@ export function Home() {
   const minutes = String(minutesAmount).padStart(2, "0");
   const seconds = String(secondsAmount).padStart(2, "0");
 
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`;
+    } else {
+      document.title = "Timer";
+    }
+  }, [minutes, seconds, activeCycle]);
+
   const task = watch("task");
 
-  
+  console.log(cycles, activeCycle);
 
   return (
     <HomeContainer>
