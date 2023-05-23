@@ -15,6 +15,7 @@ interface Cycle {
 }
 
 interface CyclesContextType {
+  cycles:Cycle[];
   activeCycle: Cycle | undefined;
   activeCyclesId: string | null;
   amountSecondsPassed: number;
@@ -77,13 +78,12 @@ function createNewCycle(data: CreateCycleData) {
   setCycles((state) => [...state, newCycle]);
   setActiveCyclesId(id);
   setAmountSecondsPassed(0);
-
-  reset();
 }
 
   return (
     <CyclesContext.Provider
       value={{
+        cycles,
         activeCycle,
         activeCyclesId,
         amountSecondsPassed,
