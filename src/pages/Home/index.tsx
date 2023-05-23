@@ -1,17 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { differenceInSeconds } from "date-fns";
 import { HandPalm, Play } from "phosphor-react";
-import { createContext, useEffect, useState } from "react";
-
+import { createContext, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import * as zod from "zod";
 import { Countdown } from "./components/Countdown";
 import { NewCycleForm } from "./components/NewCycleForm";
-import {
-  CountdownContainer,
-  HomeContainer,
-  Separator,
-  StartButton,
-  StopButton,
-} from "./styles";
+import { HomeContainer, StartButton, StopButton } from "./styles";
 
 interface Cycle {
   id: string;
@@ -25,16 +19,39 @@ interface Cycle {
 interface CyclesContextType {
   activeCycle: Cycle | undefined;
   activeCyclesId: string | null;
+  amountSecondsPassed: number;
   markCurrentCycleAsFinished: () => void;
+  setSecondsPassed: (seconds: number) => void;
 }
+
+const newCycleFormSchema = zod.object({
+  task: zod.string().min(1, "Informe a tarefa"),
+  minutesAmount: zod.number().min(5).max(60),
+});
+
+type NewCycleFormData = zod.infer<typeof newCycleFormSchema>;
 
 export const CyclesContext = createContext({} as CyclesContextType);
 
 export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCyclesId, setActiveCyclesId] = useState<string | null>(null);
-
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
   const activeCycle = cycles.find((cycle) => cycle.id === activeCyclesId);
+
+  const newCycleForm = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormSchema),
+    defaultValues: {
+      task: "",
+      minutesAmount: 0,
+    },
+  });
+
+  const { handleSubmit, watch, reset } = newCycleForm;
+
+  function setSecondsPassed(seconds: number) {
+    setAmountSecondsPassed(seconds);
+  }
 
   function markCurrentCycleAsFinished() {
     setCycles((state) =>
@@ -72,6 +89,7 @@ export function Home() {
 
     setCycles((state) => [...state, newCycle]);
     setActiveCyclesId(id);
+    setAmountSecondsPassed(0);
 
     reset();
   }
@@ -82,9 +100,17 @@ export function Home() {
     <HomeContainer>
       <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
         <CyclesContext.Provider
-          value={{ activeCycle, activeCyclesId, markCurrentCycleAsFinished }}
+          value={{
+            activeCycle,
+            activeCyclesId,
+            amountSecondsPassed,
+            markCurrentCycleAsFinished,
+            setSecondsPassed,
+          }}
         >
-          <NewCycleForm />
+          <FormProvider {...newCycleForm}>
+            <NewCycleForm />
+          </FormProvider>
           <Countdown />
         </CyclesContext.Provider>
         {activeCycle ? (
