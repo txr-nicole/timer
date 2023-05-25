@@ -16,8 +16,6 @@ interface CyclesState {
 }
 
 export function cyclesReducer(state: CyclesState, action: any) {
-  console.log(state, action);
-
   switch (action.type) {
     case ActionTypes.ADD_NEW_CYCLE:
       return produce(state, (draft) => {
@@ -26,7 +24,7 @@ export function cyclesReducer(state: CyclesState, action: any) {
       });
     case ActionTypes.INTERRUPT_CURRENT_CYCLE:{
       const currentCycleIndex = state.cycles.findIndex((cycle) => {
-        cycle.id === state.activeCyclesId;
+        return cycle.id === state.activeCyclesId;
       });
 
       if (currentCycleIndex < 0) {
@@ -40,7 +38,7 @@ export function cyclesReducer(state: CyclesState, action: any) {
     case ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED:
       {
         const currentCycleIndex = state.cycles.findIndex((cycle) => {
-          cycle.id === state.activeCyclesId;
+          return cycle.id === state.activeCyclesId;
         });
 
         if (currentCycleIndex < 0) {
