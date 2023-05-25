@@ -1,6 +1,17 @@
-import { ReactNode, createContext, useReducer, useState } from "react";
-import {Cycle, cyclesReducer } from "../reducers/cycles/reducer";
-import {addNewCycleAction, interruptCurrentCycleAction, markCurrentCycleAsFinishedAction } from "../reducers/cycles/actions";
+import { differenceInSeconds } from "date-fns";
+import {
+  ReactNode,
+  createContext,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
+import {
+  addNewCycleAction,
+  interruptCurrentCycleAction,
+  markCurrentCycleAsFinishedAction,
+} from "../reducers/cycles/actions";
+import { Cycle, cyclesReducer } from "../reducers/cycles/reducer";
 
 interface CreateCycleData {
   task: string;
@@ -25,15 +36,40 @@ interface CyclesContextProviderProps {
 }
 
 export function CycleContextProvider({ children }: CyclesContextProviderProps) {
-  const [cyclesState, dispatch] = useReducer(cyclesReducer, {
-    cycles: [],
-    activeCyclesId: null,
+  const [cyclesState, dispatch] = useReducer(
+    cyclesReducer,
+    {
+      cycles: [],
+      activeCyclesId: null,
+    },
+    (initialState) => {
+      const storedStateAsJSON = localStorage.getItem(
+        "@timer:cycles-state1.0.0"
+      );
+
+      if (storedStateAsJSON) {
+        return JSON.parse(storedStateAsJSON);
+      }
+
+      return initialState;
+    }
+  );
+
+  const { cycles, activeCyclesId } = cyclesState;
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCyclesId);
+
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(() => {
+    if (activeCycle) {
+      return differenceInSeconds(new Date(), new Date(activeCycle.startDate));
+    }
+    return 0;
   });
 
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
-  const { cycles, activeCyclesId } = cyclesState;
+  useEffect(() => {
+    const stateJSON = JSON.stringify(cyclesState);
 
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCyclesId);
+    localStorage.setItem("@timer:cycles-state1.0.0", stateJSON);
+  }, [cyclesState]);
 
   function setSecondsPassed(seconds: number) {
     setAmountSecondsPassed(seconds);
